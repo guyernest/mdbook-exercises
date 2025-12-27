@@ -2,10 +2,11 @@
 name = "mdbook-exercises"
 version = "0.1.0"
 edition = "2021"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["MLGuy"]
 license = "MIT OR Apache-2.0"
 description = "An mdBook preprocessor for interactive exercises with hints, solutions, and test execution"
-repository = "https://github.com/YOUR_ORG/mdbook-exercises"
+repository = "https://github.com/guyernest/mdbook-exercises"
+homepage = "https://github.com/guyernest/mdbook-exercises"
 documentation = "https://docs.rs/mdbook-exercises"
 readme = "README.md"
 keywords = ["mdbook", "exercises", "education", "markdown", "interactive"]
