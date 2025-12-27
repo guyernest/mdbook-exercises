@@ -25,9 +25,15 @@ cargo install mdbook-exercises
 ### From source
 
 ```bash
-git clone https://github.com/YOUR_ORG/mdbook-exercises
+git clone https://github.com/guyernest/mdbook-exercises
 cd mdbook-exercises
 cargo install --path .
+```
+
+### From GitHub directly
+
+```bash
+cargo install --git https://github.com/guyernest/mdbook-exercises
 ```
 
 ## Quick Start
@@ -38,9 +44,27 @@ cargo install --path .
 [preprocessor.exercises]
 ```
 
-### 2. Create an exercise in Markdown
+### 2. Include the CSS and JavaScript assets
 
-```markdown
+Copy the assets to your book's theme directory:
+
+```bash
+mkdir -p src/theme
+cp /path/to/mdbook-exercises/assets/exercises.css src/theme/
+cp /path/to/mdbook-exercises/assets/exercises.js src/theme/
+```
+
+Then add to your `book.toml`:
+
+```toml
+[output.html]
+additional-css = ["theme/exercises.css"]
+additional-js = ["theme/exercises.js"]
+```
+
+### 3. Create an exercise in Markdown
+
+````markdown
 # Exercise: Hello World
 
 ::: exercise
@@ -92,9 +116,9 @@ fn test_greet_name() {
 }
 ```
 :::
-```
+````
 
-### 3. Build your book
+### 4. Build your book
 
 ```bash
 mdbook build
@@ -106,20 +130,22 @@ mdbook build
 
 Defines metadata for the exercise:
 
-```markdown
+````markdown
 ::: exercise
 id: unique-exercise-id
 difficulty: beginner | intermediate | advanced
 time: 20 minutes
-prerequisites: [exercise-id-1, exercise-id-2]
+prerequisites:
+  - exercise-id-1
+  - exercise-id-2
 :::
-```
+````
 
 ### Objectives Block
 
 Learning outcomes in two categories:
 
-```markdown
+````markdown
 ::: objectives
 thinking:
   - Understand concept X
@@ -129,24 +155,24 @@ doing:
   - Implement function Z
   - Write tests for edge cases
 :::
-```
+````
 
 ### Discussion Block
 
 Pre-exercise reflection prompts:
 
-```markdown
+````markdown
 ::: discussion
 - Why might we want to do X?
 - What are the tradeoffs of approach Y?
 :::
-```
+````
 
 ### Starter Block
 
 Editable code for the student to complete:
 
-```markdown
+````markdown
 ::: starter file="src/main.rs" language=rust
 ```rust
 fn main() {
@@ -154,7 +180,7 @@ fn main() {
 }
 ```
 :::
-```
+````
 
 **Attributes:**
 - `file` - Suggested filename (displayed in header)
@@ -164,7 +190,7 @@ fn main() {
 
 Progressive hints with levels:
 
-```markdown
+````markdown
 ::: hint level=1 title="Getting Started"
 First, consider...
 :::
@@ -178,7 +204,7 @@ Here's more detail...
 // Nearly complete solution
 ```
 :::
-```
+````
 
 **Attributes:**
 - `level` - Hint number (1, 2, 3, etc.)
@@ -188,7 +214,7 @@ Here's more detail...
 
 The complete solution, hidden by default:
 
-```markdown
+````markdown
 ::: solution
 ```rust
 fn solution() {
@@ -200,13 +226,13 @@ fn solution() {
 
 Why this solution works...
 :::
-```
+````
 
 ### Tests Block
 
 Test code that can optionally run in the browser:
 
-```markdown
+````markdown
 ::: tests mode=playground
 ```rust
 #[test]
@@ -215,7 +241,7 @@ fn test_example() {
 }
 ```
 :::
-```
+````
 
 **Attributes:**
 - `mode` - Either `playground` (run in browser) or `local` (display only)
@@ -230,12 +256,12 @@ When `mode=playground`:
 
 Post-exercise questions:
 
-```markdown
+````markdown
 ::: reflection
 - What did you learn from this exercise?
 - How would you extend this solution?
 :::
-```
+````
 
 ## Browser Features
 
@@ -347,11 +373,10 @@ See the [examples](./examples) directory for complete exercise examples:
 
 - `hello-world.md` - Basic exercise structure
 - `calculator.md` - Multi-hint exercise with tests
-- `code-review.md` - Non-coding exercise format
 
 ## Contributing
 
-Contributions are welcome! Please see [CONTRIBUTING.md](./CONTRIBUTING.md).
+Contributions are welcome! Please open an issue or submit a pull request at [GitHub](https://github.com/guyernest/mdbook-exercises).
 
 ## License
 
