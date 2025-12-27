@@ -320,14 +320,13 @@ fn render_starter(starter: &StarterCode, exercise_id: &str) -> String {
     html.push_str("    </div>\n");
     html.push_str("  </div>\n");
 
-    // Editable code area
-    let escaped_code = escape_html(&starter.code);
+    // Editable code area - leave body empty, JS will populate from data-original
+    // This avoids mdBook's markdown processor corrupting the content
     html.push_str(&format!(
-        r#"  <textarea class="code-editor" id="code-{}" data-language="{}" data-original="{}" spellcheck="false">{}</textarea>"#,
+        r#"  <textarea class="code-editor" id="code-{}" data-language="{}" data-original="{}" spellcheck="false"></textarea>"#,
         exercise_id,
         escape_html(&starter.language),
-        escape_html_attr(&starter.code),
-        escaped_code
+        escape_html_attr(&starter.code)
     ));
     html.push('\n');
 
