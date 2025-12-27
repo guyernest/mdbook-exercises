@@ -1,0 +1,21 @@
+# Build artifacts
+/target/
+
+# Generated files
+/hello-world.html
+*.log
+
+# IDEs and editors
+/.idea/
+/.vscode/
+*.swp
+*.swo
+.env
+.env.*
+
+# OS specific files
+.DS_Store
+Thumbs.db
+
+# Rust specific
+**/*.rs.bk

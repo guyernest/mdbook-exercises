@@ -1,0 +1,61 @@
+[package]
+name = "mdbook-exercises"
+version = "0.1.0"
+edition = "2021"
+authors = ["Your Name <your.email@example.com>"]
+license = "MIT OR Apache-2.0"
+description = "An mdBook preprocessor for interactive exercises with hints, solutions, and test execution"
+repository = "https://github.com/YOUR_ORG/mdbook-exercises"
+documentation = "https://docs.rs/mdbook-exercises"
+readme = "README.md"
+keywords = ["mdbook", "exercises", "education", "markdown", "interactive"]
+categories = ["development-tools", "text-processing", "command-line-utilities"]
+
+[features]
+default = ["preprocessor"]
+# Full mdBook preprocessor (includes rendering)
+preprocessor = ["mdbook", "render"]
+# HTML rendering without mdBook integration
+render = []
+# Parser only - no rendering, minimal dependencies
+
+[dependencies]
+# Core parsing
+pulldown-cmark = "0.10"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+thiserror = "1.0"
+regex = "1.10"
+
+# Optional: mdBook integration
+mdbook = { version = "0.4", optional = true }
+
+# Optional: rendering
+handlebars = { version = "5.1", optional = true }
+
+[dev-dependencies]
+pretty_assertions = "1.4"
+tempfile = "3.10"
+tokio = { version = "1.36", features = ["rt", "macros"] }
+
+[[bin]]
+name = "mdbook-exercises"
+path = "src/main.rs"
+required-features = ["preprocessor"]
+
+[lib]
+name = "mdbook_exercises"
+path = "src/lib.rs"
+
+[[example]]
+name = "parse_exercise"
+path = "examples/parse_exercise.rs"
+
+[[example]]
+name = "validate_exercises"
+path = "examples/validate_exercises.rs"
+
+[[example]]
+name = "render_example"
+path = "examples/render_example.rs"
