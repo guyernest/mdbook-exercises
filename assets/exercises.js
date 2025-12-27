@@ -94,17 +94,15 @@
     // ============================================
 
     function initCopyButtons() {
-        document.querySelectorAll('.copy-btn').forEach(button => {
+        document.querySelectorAll('.btn-copy').forEach(button => {
             button.addEventListener('click', async function() {
-                const container = this.closest('.exercise-starter');
-                const codeEl = container.querySelector('.starter-code code, .starter-code textarea');
+                const targetId = this.dataset.target;
+                const textarea = document.getElementById(targetId);
 
-                if (!codeEl) return;
-
-                const code = codeEl.tagName === 'TEXTAREA' ? codeEl.value : codeEl.textContent;
+                if (!textarea) return;
 
                 try {
-                    await navigator.clipboard.writeText(code);
+                    await navigator.clipboard.writeText(textarea.value);
                     const originalText = this.textContent;
                     this.textContent = 'Copied!';
                     setTimeout(() => {
@@ -123,19 +121,21 @@
     // ============================================
 
     function initResetButtons() {
-        document.querySelectorAll('.reset-btn').forEach(button => {
+        document.querySelectorAll('.btn-reset').forEach(button => {
             button.addEventListener('click', function() {
-                const container = this.closest('.exercise-starter');
-                const textarea = container.querySelector('.starter-code textarea');
-                const original = container.querySelector('.starter-code code');
+                const targetId = this.dataset.target;
+                const textarea = document.getElementById(targetId);
 
-                if (textarea && original) {
+                if (textarea && textarea.dataset.original) {
                     if (confirm('Reset code to original? Your changes will be lost.')) {
-                        textarea.value = original.textContent;
+                        // Decode HTML entities from data-original
+                        const temp = document.createElement('textarea');
+                        temp.innerHTML = textarea.dataset.original;
+                        textarea.value = temp.value;
                         showNotification('Code reset to original', 'success');
                     }
-                } else if (original) {
-                    showNotification('Code is already at original state', 'info');
+                } else {
+                    showNotification('No original code found', 'error');
                 }
             });
         });
@@ -143,22 +143,6 @@
 
     // ============================================
     // Hint Toggles
-    // ============================================
-
-    function initHintToggles() {
-        document.querySelectorAll('.hint-toggle').forEach(toggle => {
-            toggle.addEventListener('click', function() {
-                const content = this.nextElementSibling;
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
-
-                this.setAttribute('aria-expanded', !isExpanded);
-                content.classList.toggle('show');
-            });
-        });
-    }
-
-    // ============================================
-    // Solution Toggles
     // ============================================
 
     function initSolutionToggles() {
@@ -226,26 +210,33 @@
     // ============================================
 
     function initRunTests() {
-        document.querySelectorAll('.run-tests-btn').forEach(button => {
+        document.querySelectorAll('.btn-run-tests').forEach(button => {
             button.addEventListener('click', async function() {
+                console.log("Run tests button clicked.");
+
                 const container = this.closest('.exercise-container');
+                console.log("Container element:", container);
+
                 const starterContainer = container.querySelector('.exercise-starter');
+                console.log("Starter container:", starterContainer);
+
                 const testsContainer = container.querySelector('.exercise-tests');
+                console.log("Tests container:", testsContainer);
 
                 // Get the user's code
                 let userCode = '';
                 const textarea = starterContainer?.querySelector('textarea');
-                const codeEl = starterContainer?.querySelector('.starter-code code');
-
                 if (textarea) {
                     userCode = textarea.value;
-                } else if (codeEl) {
-                    userCode = codeEl.textContent;
                 }
+                console.log("User code:", userCode ? userCode.substring(0, 50) + "..." : "[empty]");
 
                 // Get the test code
-                const testCodeEl = testsContainer?.querySelector('.tests-code code');
+                const testCodeEl = testsContainer?.querySelector('pre code');
+                console.log("Test code element:", testCodeEl);
+
                 const testCode = testCodeEl ? testCodeEl.textContent : '';
+                console.log("Test code:", testCode ? testCode.substring(0, 50) + "..." : "[empty]");
 
                 if (!userCode && !testCode) {
                     showNotification('No code to run', 'error');
@@ -254,6 +245,7 @@
 
                 // Combine user code and test code
                 const fullCode = combineCodeForTests(userCode, testCode);
+                console.log("Combined code:", fullCode.substring(0, 100) + "...");
 
                 // Show loading state
                 this.classList.add('loading');
@@ -269,6 +261,7 @@
 
                 try {
                     const result = await runOnPlayground(fullCode);
+                    console.log("Playground result:", result);
 
                     if (resultsEl) {
                         resultsEl.classList.remove('pending');
@@ -326,11 +319,6 @@
             } else {
                 combined = userCode + '\n\n' + testCode;
             }
-        }
-
-        // Wrap in test harness if needed
-        if (!combined.includes('fn main')) {
-            combined = combined + '\n\nfn main() { /* test harness */ }';
         }
 
         return combined;
@@ -457,14 +445,39 @@
     }
 
     // ============================================
+    // ============================================
+    // Textarea Content Initialization
+    // ============================================
+
+    /**
+     * Populate textareas from their data-original attribute.
+     * This is needed because mdBook's markdown processor corrupts content
+     * placed directly inside textarea elements.
+     */
+    function initTextareaContent() {
+        document.querySelectorAll('textarea.code-editor[data-original]').forEach(textarea => {
+            if (!textarea.value || textarea.value.trim() === '') {
+                // Decode HTML entities from data-original
+                const original = textarea.dataset.original;
+                if (original) {
+                    // Create a temporary element to decode HTML entities
+                    const temp = document.createElement('textarea');
+                    temp.innerHTML = original;
+                    textarea.value = temp.value;
+                }
+            }
+        });
+    }
+
+    // ============================================
     // Initialize
     // ============================================
 
     function init() {
         addAnimationStyles();
+        initTextareaContent();  // Must run first to populate code
         initCopyButtons();
         initResetButtons();
-        initHintToggles();
         initSolutionToggles();
         initProgressTracking();
         initRunTests();

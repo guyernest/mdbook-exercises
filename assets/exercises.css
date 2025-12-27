@@ -139,7 +139,7 @@
 
 .exercise-objectives li {
     margin: 0.25rem 0;
-    font-size: 0.9rem;
+    font-size: 1em;
 }
 
 /* ============================================
@@ -240,17 +240,19 @@
     line-height: 1.5;
 }
 
-.starter-code textarea {
+.code-editor {
     width: 100%;
-    min-height: 200px;
+    min-height: 250px;
     padding: 1rem 1.5rem;
-    border: none;
+    border: 1px solid var(--quote-border, #5c6773);
+    border-radius: 4px;
     font-family: var(--mono-font, monospace);
-    font-size: 0.9rem;
+    font-size: 1em;
     line-height: 1.5;
     background: var(--code-bg, #f5f5f5);
     color: var(--fg, #333);
     resize: vertical;
+    box-sizing: border-box;
 }
 
 .starter-code textarea:focus {
@@ -266,51 +268,39 @@
     padding: 1rem 1.5rem;
 }
 
-.exercise-hints h4 {
-    margin: 0 0 1rem;
-    font-size: 0.9rem;
+.exercise-hints h3 {
+    margin-top: 0;
 }
 
-.hint-item {
+.hint {
     margin-bottom: 0.75rem;
 }
-
-.hint-item:last-child {
+.hint:last-child {
     margin-bottom: 0;
 }
 
-.hint-toggle {
-    display: flex;
-    align-items: center;
-    width: 100%;
+.hint summary {
+    cursor: pointer;
     padding: 0.75rem 1rem;
     border: 1px solid var(--quote-border, #5c6773);
     border-radius: 4px;
     background: var(--bg, #fff);
-    color: var(--fg, #333);
-    font-size: 0.9rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    text-align: left;
+    transition: background-color 0.2s ease;
 }
 
-.hint-toggle:hover {
+.hint summary:hover {
     background: var(--quote-bg, #f7f7f7);
 }
 
-.hint-toggle::before {
-    content: "▶";
-    margin-right: 0.75rem;
-    font-size: 0.7rem;
-    transition: transform 0.2s ease;
+.hint summary::marker {
+    content: '▶ ';
 }
 
-.hint-toggle[aria-expanded="true"]::before {
-    transform: rotate(90deg);
+.hint[open] > summary::marker {
+    content: '▼ ';
 }
 
 .hint-content {
-    display: none;
     padding: 1rem;
     margin-top: 0.5rem;
     background: var(--quote-bg, #f7f7f7);
@@ -318,8 +308,12 @@
     border-left: 3px solid var(--links, #4183c4);
 }
 
-.hint-content.show {
-    display: block;
+.hint-content p {
+    margin: 0 0 0.75rem;
+}
+
+.hint-content p:last-child {
+    margin-bottom: 0;
 }
 
 .hint-content p {
@@ -623,6 +617,11 @@
    Dark Theme Support
    ============================================ */
 @media (prefers-color-scheme: dark) {
+    .code-editor {
+        background: var(--code-bg, #363636);
+        color: var(--fg, #f5f5f5);
+    }
+
     .difficulty-beginner {
         background: #1e4620;
         color: #8fd694;

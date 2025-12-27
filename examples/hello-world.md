@@ -166,7 +166,7 @@ But `format!` is cleaner and more readable for this use case.
 Run these tests to verify your solution:
 
 ::: tests mode=playground
-```rust
+```rust,ignore
 // Note: The greet function should be defined above
 
 #[test]

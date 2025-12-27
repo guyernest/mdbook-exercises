@@ -556,7 +556,7 @@ fn extract_code_block(content: &str) -> (Option<String>, String) {
                 in_code_block = true;
                 let lang = line.trim().trim_start_matches('`').trim();
                 if !lang.is_empty() {
-                    language = Some(lang.to_string());
+                    language = Some(lang.split(',').next().unwrap_or("").to_string());
                 }
             }
         } else if in_code_block {
