@@ -144,6 +144,30 @@ jobs:
                   <div class="description">Intermediate exercise - Learn Result types and pattern matching</div>
                 </a>
               </li>
+              <li>
+                <a href="multilang-python.html">
+                  <div class="title">Reverse a String (Python)</div>
+                  <div class="description">Beginner exercise - Non-Rust example with local tests</div>
+                </a>
+              </li>
+              <li>
+                <a href="multilang-js.html">
+                  <div class="title">Palindrome Check (JavaScript)</div>
+                  <div class="description">Beginner exercise - Node.js example with local tests</div>
+                </a>
+              </li>
+              <li>
+                <a href="solution-reveal.html">
+                  <div class="title">Solution Reveal Policy</div>
+                  <div class="description">Demonstrates reveal=always behavior for solutions</div>
+                </a>
+              </li>
+              <li>
+                <a href="double-exercise.html">
+                  <div class="title">Two Exercises in One Chapter</div>
+                  <div class="description">Shows multiple exercises and navigation on one page</div>
+                </a>
+              </li>
             </ul>
 
             <footer>
