@@ -25,8 +25,51 @@ fn main() {
 
     // Render it
     println!("Rendering to HTML...");
-    let html = render_exercise(&exercise)
+    let exercise_html = render_exercise(&exercise)
         .expect("Failed to render exercise");
+
+    // Get title for the page
+    let title = exercise.title.as_deref().unwrap_or("Exercise");
+
+    // Wrap in a full HTML page
+    let html = format!(
+        r#"<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{title}</title>
+  <link rel="stylesheet" href="assets/exercises.css">
+  <style>
+    body {{
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 2rem;
+      background: var(--bg, #fafafa);
+      color: var(--fg, #333);
+    }}
+    .back-link {{
+      display: inline-block;
+      margin-bottom: 1rem;
+      color: var(--links, #4183c4);
+      text-decoration: none;
+    }}
+    .back-link:hover {{
+      text-decoration: underline;
+    }}
+  </style>
+</head>
+<body>
+  <a href="index.html" class="back-link">← Back to Examples</a>
+  {exercise_html}
+  <script src="assets/exercises.js"></script>
+</body>
+</html>
+"#,
+        title = title,
+        exercise_html = exercise_html
+    );
 
     // Determine output path (same name as input, but .html extension)
     let input = Path::new(input_path);
@@ -41,6 +84,5 @@ fn main() {
 
     println!("Success! Rendered HTML saved to: {}", output_path);
     println!("\nTo view the result, open {} in your browser.", output_path);
-    println!("(Note: The CSS and JS from the assets/ directory are required for full functionality)");
 }
 
