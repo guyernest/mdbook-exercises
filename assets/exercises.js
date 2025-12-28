@@ -453,20 +453,72 @@
      * Populate textareas from their data-original attribute.
      * This is needed because mdBook's markdown processor corrupts content
      * placed directly inside textarea elements.
+     * Always re-populates to ensure HTML entities are properly decoded.
      */
     function initTextareaContent() {
         document.querySelectorAll('textarea.code-editor[data-original]').forEach(textarea => {
-            if (!textarea.value || textarea.value.trim() === '') {
-                // Decode HTML entities from data-original
-                const original = textarea.dataset.original;
-                if (original) {
-                    // Create a temporary element to decode HTML entities
-                    const temp = document.createElement('textarea');
-                    temp.innerHTML = original;
-                    textarea.value = temp.value;
+            // Decode HTML entities from data-original
+            const original = textarea.dataset.original;
+            if (original) {
+                // Create a temporary element to decode HTML entities
+                const temp = document.createElement('textarea');
+                temp.innerHTML = original;
+                textarea.value = temp.value;
+            }
+        });
+    }
+
+    // ============================================
+    // Section Navigation Highlighting
+    // ============================================
+
+    function initNavHighlighting() {
+        const navLinks = document.querySelectorAll('.exercise-nav a');
+        if (navLinks.length === 0) return;
+
+        const sections = [];
+        navLinks.forEach(link => {
+            const href = link.getAttribute('href');
+            if (href && href.startsWith('#')) {
+                const section = document.getElementById(href.slice(1));
+                if (section) {
+                    sections.push({ element: section, link: link });
                 }
             }
         });
+
+        if (sections.length === 0) return;
+
+        function updateActiveNav() {
+            const scrollPos = window.scrollY + 100; // Offset for header
+
+            let activeSection = sections[0];
+            for (const section of sections) {
+                if (section.element.offsetTop <= scrollPos) {
+                    activeSection = section;
+                }
+            }
+
+            navLinks.forEach(link => link.classList.remove('active'));
+            if (activeSection) {
+                activeSection.link.classList.add('active');
+            }
+        }
+
+        // Throttle scroll events
+        let ticking = false;
+        window.addEventListener('scroll', () => {
+            if (!ticking) {
+                window.requestAnimationFrame(() => {
+                    updateActiveNav();
+                    ticking = false;
+                });
+                ticking = true;
+            }
+        });
+
+        // Initial highlight
+        updateActiveNav();
     }
 
     // ============================================
@@ -483,6 +535,7 @@
         initRunTests();
         initEditableCode();
         initKeyboardShortcuts();
+        initNavHighlighting();
 
         console.log('mdbook-exercises initialized');
     }

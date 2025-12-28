@@ -1,0 +1,216 @@
+name: Build and Deploy Examples
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - 'examples/**'
+      - 'Cargo.toml'
+      - '.github/workflows/examples.yml'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'src/**'
+      - 'assets/**'
+      - 'examples/**'
+      - 'Cargo.toml'
+      - '.github/workflows/examples.yml'
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "examples-pages"
+  cancel-in-progress: false
+
+jobs:
+  # Build the examples
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Build project
+        run: cargo build --release
+
+      - name: Render example exercises
+        run: |
+          mkdir -p site
+
+          # Copy assets
+          cp -r assets site/
+
+          # Render each example
+          for example in examples/*.md; do
+            if [ -f "$example" ]; then
+              name=$(basename "$example" .md)
+              echo "Rendering $name..."
+              cargo run --release --example render_example -- "$example"
+              mv "${name}.html" "site/${name}.html"
+            fi
+          done
+
+      - name: Create index page
+        run: |
+          cat > site/index.html << 'EOF'
+          <!DOCTYPE html>
+          <html lang="en">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>mdbook-exercises Examples</title>
+            <link rel="stylesheet" href="assets/exercises.css">
+            <style>
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+                max-width: 900px;
+                margin: 0 auto;
+                padding: 2rem;
+                background: var(--bg, #fafafa);
+                color: var(--fg, #333);
+              }
+              h1 {
+                border-bottom: 2px solid var(--quote-border, #5c6773);
+                padding-bottom: 0.5rem;
+              }
+              .examples-list {
+                list-style: none;
+                padding: 0;
+              }
+              .examples-list li {
+                margin: 1rem 0;
+              }
+              .examples-list a {
+                display: block;
+                padding: 1rem 1.5rem;
+                background: var(--quote-bg, #f7f7f7);
+                border: 1px solid var(--quote-border, #5c6773);
+                border-radius: 8px;
+                text-decoration: none;
+                color: var(--fg, #333);
+                transition: all 0.2s ease;
+              }
+              .examples-list a:hover {
+                background: var(--links, #4183c4);
+                color: white;
+                border-color: var(--links, #4183c4);
+              }
+              .examples-list .title {
+                font-weight: 600;
+                font-size: 1.1rem;
+              }
+              .examples-list .description {
+                font-size: 0.9rem;
+                opacity: 0.8;
+                margin-top: 0.25rem;
+              }
+              footer {
+                margin-top: 3rem;
+                padding-top: 1rem;
+                border-top: 1px solid var(--quote-border, #5c6773);
+                font-size: 0.85rem;
+                opacity: 0.7;
+              }
+            </style>
+          </head>
+          <body>
+            <h1>mdbook-exercises Examples</h1>
+            <p>Interactive exercise examples demonstrating the mdbook-exercises preprocessor.</p>
+
+            <ul class="examples-list">
+              <li>
+                <a href="hello-world.html">
+                  <div class="title">Hello World</div>
+                  <div class="description">Beginner exercise - Learn to use the format! macro</div>
+                </a>
+              </li>
+              <li>
+                <a href="calculator.html">
+                  <div class="title">Calculator with Error Handling</div>
+                  <div class="description">Intermediate exercise - Learn Result types and pattern matching</div>
+                </a>
+              </li>
+            </ul>
+
+            <footer>
+              <p>
+                <a href="https://github.com/guyernest/mdbook-exercises">View on GitHub</a> |
+                <a href="https://crates.io/crates/mdbook-exercises">Install from crates.io</a>
+              </p>
+            </footer>
+
+            <script src="assets/exercises.js"></script>
+          </body>
+          </html>
+          EOF
+
+      - name: Upload site artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: examples-site
+          path: site
+          retention-days: 7
+
+  # Run tests on PRs
+  test:
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Cache cargo
+        uses: Swatinem/rust-cache@v2
+
+      - name: Run tests
+        run: cargo test
+
+      - name: Check formatting
+        run: cargo fmt --check
+
+      - name: Run clippy
+        run: cargo clippy -- -D warnings
+
+  # Deploy to GitHub Pages (only on main branch push)
+  deploy:
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Download site artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: examples-site
+          path: site
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: site
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

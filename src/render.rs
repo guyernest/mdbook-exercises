@@ -78,9 +78,12 @@ pub fn render_exercise_with_config(
     // Header with title and metadata
     html.push_str(&render_header(exercise));
 
+    // Section navigation outline
+    html.push_str(&render_navigation(exercise));
+
     // Description
     if !exercise.description.is_empty() {
-        html.push_str(&render_description(&exercise.description));
+        html.push_str(&render_description(&exercise.description, &exercise.metadata.id));
     }
 
     // Objectives
@@ -100,12 +103,12 @@ pub fn render_exercise_with_config(
 
     // Hints
     if !exercise.hints.is_empty() {
-        html.push_str(&render_hints(&exercise.hints, config.reveal_hints));
+        html.push_str(&render_hints(&exercise.hints, config.reveal_hints, &exercise.metadata.id));
     }
 
     // Solution
     if let Some(solution) = &exercise.solution {
-        html.push_str(&render_solution(solution, config.reveal_solution));
+        html.push_str(&render_solution(solution, config.reveal_solution, &exercise.metadata.id));
     }
 
     // Tests
@@ -115,7 +118,7 @@ pub fn render_exercise_with_config(
 
     // Reflection
     if let Some(reflection) = &exercise.reflection {
-        html.push_str(&render_reflection(reflection));
+        html.push_str(&render_reflection(reflection, &exercise.metadata.id));
     }
 
     // Footer with complete button
@@ -127,6 +130,78 @@ pub fn render_exercise_with_config(
     html.push_str("</article>\n");
 
     Ok(html)
+}
+
+/// Render section navigation outline
+fn render_navigation(exercise: &Exercise) -> String {
+    let mut html = String::new();
+    let id = &exercise.metadata.id;
+
+    html.push_str(r#"<nav class="exercise-nav" aria-label="Exercise sections">"#);
+    html.push('\n');
+    html.push_str("  <ul>\n");
+
+    // Always have description
+    if !exercise.description.is_empty() {
+        html.push_str(&format!(
+            "    <li><a href=\"#{}-description\" data-section=\"description\">📖 Overview</a></li>",
+            id
+        ));
+        html.push('\n');
+    }
+
+    if exercise.objectives.is_some() {
+        html.push_str(&format!(
+            "    <li><a href=\"#{}-objectives\" data-section=\"objectives\">🎯 Objectives</a></li>",
+            id
+        ));
+        html.push('\n');
+    }
+
+    if exercise.starter.is_some() {
+        html.push_str(&format!(
+            "    <li><a href=\"#{}-starter\" data-section=\"starter\">💻 Code</a></li>",
+            id
+        ));
+        html.push('\n');
+    }
+
+    if !exercise.hints.is_empty() {
+        html.push_str(&format!(
+            "    <li><a href=\"#{}-hints\" data-section=\"hints\">💡 Hints</a></li>",
+            id
+        ));
+        html.push('\n');
+    }
+
+    if exercise.solution.is_some() {
+        html.push_str(&format!(
+            "    <li><a href=\"#{}-solution\" data-section=\"solution\">✅ Solution</a></li>",
+            id
+        ));
+        html.push('\n');
+    }
+
+    if exercise.tests.is_some() {
+        html.push_str(&format!(
+            "    <li><a href=\"#{}-tests\" data-section=\"tests\">🧪 Tests</a></li>",
+            id
+        ));
+        html.push('\n');
+    }
+
+    if exercise.reflection.is_some() {
+        html.push_str(&format!(
+            "    <li><a href=\"#{}-reflection\" data-section=\"reflection\">🤔 Reflect</a></li>",
+            id
+        ));
+        html.push('\n');
+    }
+
+    html.push_str("  </ul>\n");
+    html.push_str("</nav>\n");
+
+    html
 }
 
 /// Render the exercise header with title and metadata.
@@ -202,10 +277,13 @@ fn render_header(exercise: &Exercise) -> String {
 }
 
 /// Render the description section.
-fn render_description(description: &str) -> String {
+fn render_description(description: &str, exercise_id: &str) -> String {
     let mut html = String::new();
 
-    html.push_str(r#"<section class="exercise-description">"#);
+    html.push_str(&format!(
+        r#"<section class="exercise-description" id="{}-description">"#,
+        exercise_id
+    ));
     html.push('\n');
 
     // Convert markdown to HTML
@@ -223,7 +301,10 @@ fn render_description(description: &str) -> String {
 fn render_objectives(objectives: &Objectives, exercise_id: &str) -> String {
     let mut html = String::new();
 
-    html.push_str(r#"<section class="exercise-objectives">"#);
+    html.push_str(&format!(
+        r#"<section class="exercise-objectives" id="{}-objectives">"#,
+        exercise_id
+    ));
     html.push('\n');
     html.push_str("  <h3>🎯 Learning Objectives</h3>\n");
     html.push_str(r#"  <div class="objectives-grid">"#);
@@ -292,7 +373,10 @@ fn render_discussion(discussion: &[String]) -> String {
 fn render_starter(starter: &StarterCode, exercise_id: &str) -> String {
     let mut html = String::new();
 
-    html.push_str(r#"<section class="exercise-starter">"#);
+    html.push_str(&format!(
+        r#"<section class="exercise-starter" id="{}-starter">"#,
+        exercise_id
+    ));
     html.push('\n');
 
     // Header with filename and buttons
@@ -336,10 +420,13 @@ fn render_starter(starter: &StarterCode, exercise_id: &str) -> String {
 }
 
 /// Render the hints section.
-fn render_hints(hints: &[Hint], reveal: bool) -> String {
+fn render_hints(hints: &[Hint], reveal: bool, exercise_id: &str) -> String {
     let mut html = String::new();
 
-    html.push_str(r#"<section class="exercise-hints">"#);
+    html.push_str(&format!(
+        r#"<section class="exercise-hints" id="{}-hints">"#,
+        exercise_id
+    ));
     html.push('\n');
     html.push_str("  <h3>💡 Hints</h3>\n");
 
@@ -377,10 +464,13 @@ fn render_hints(hints: &[Hint], reveal: bool) -> String {
 }
 
 /// Render the solution section.
-fn render_solution(solution: &Solution, reveal: bool) -> String {
+fn render_solution(solution: &Solution, reveal: bool, exercise_id: &str) -> String {
     let mut html = String::new();
 
-    html.push_str(r#"<section class="exercise-solution">"#);
+    html.push_str(&format!(
+        r#"<section class="exercise-solution" id="{}-solution">"#,
+        exercise_id
+    ));
     html.push('\n');
 
     let open_attr = if reveal { " open" } else { "" };
@@ -429,21 +519,14 @@ fn render_tests(tests: &TestBlock, exercise_id: &str, config: &RenderConfig) -> 
     let mut html = String::new();
 
     html.push_str(&format!(
-        r#"<section class="exercise-tests" data-mode="{}">"#,
+        r#"<section class="exercise-tests" id="{}-tests" data-mode="{}">"#,
+        exercise_id,
         tests.mode
     ));
     html.push('\n');
     html.push_str("  <h3>🧪 Tests</h3>\n");
 
-    // Test code
-    html.push_str(&format!(
-        r#"  <pre><code class="language-{}">{}</code></pre>"#,
-        escape_html(&tests.language),
-        escape_html(&tests.code)
-    ));
-    html.push('\n');
-
-    // Actions
+    // Actions first (Run button at top)
     html.push_str(r#"  <div class="test-actions">"#);
     html.push('\n');
 
@@ -471,16 +554,31 @@ fn render_tests(tests: &TestBlock, exercise_id: &str, config: &RenderConfig) -> 
     ));
     html.push('\n');
 
+    // Test code in collapsible details (collapsed by default to avoid spoilers)
+    html.push_str(r#"  <details class="tests-code">"#);
+    html.push('\n');
+    html.push_str("    <summary>View Test Code</summary>\n");
+    html.push_str(&format!(
+        r#"    <pre><code class="language-{}">{}</code></pre>"#,
+        escape_html(&tests.language),
+        escape_html(&tests.code)
+    ));
+    html.push('\n');
+    html.push_str("  </details>\n");
+
     html.push_str("</section>\n");
 
     html
 }
 
 /// Render the reflection section.
-fn render_reflection(reflection: &[String]) -> String {
+fn render_reflection(reflection: &[String], exercise_id: &str) -> String {
     let mut html = String::new();
 
-    html.push_str(r#"<section class="exercise-reflection">"#);
+    html.push_str(&format!(
+        r#"<section class="exercise-reflection" id="{}-reflection">"#,
+        exercise_id
+    ));
     html.push('\n');
     html.push_str("  <h3>🤔 Reflection</h3>\n");
     html.push_str("  <ul>\n");
