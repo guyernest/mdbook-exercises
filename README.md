@@ -374,6 +374,8 @@ See the [examples](./examples) directory for complete exercise examples:
 - `hello-world.md` - Basic exercise structure
 - `calculator.md` - Multi-hint exercise with tests
 
+**Live Demo:** View the rendered examples at [guyernest.github.io/mdbook-exercises](https://guyernest.github.io/mdbook-exercises/)
+
 ## Contributing
 
 Contributions are welcome! Please open an issue or submit a pull request at [GitHub](https://github.com/guyernest/mdbook-exercises).
