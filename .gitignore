@@ -19,3 +19,6 @@ Thumbs.db
 
 # Rust specific
 **/*.rs.bk
+
+# Generated example HTML files
+*.html
