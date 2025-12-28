@@ -186,6 +186,32 @@ fn main() {
 :::
 ```
 
+**Code fence info:**
+
+The fenced code block info string may include the language and optional key=value pairs. Supported keys:
+
+- `filename` or `file` — Suggested filename (e.g., `filename=src/lib.rs`)
+
+Examples:
+
+````markdown
+::: starter
+```rust,filename=src/lib.rs
+pub fn run() {}
+```
+:::
+````
+
+````markdown
+::: starter file="src/main.rs"
+```rust
+fn main() {}
+```
+:::
+````
+
+**Precedence:** When both directive attributes and fence info specify the same property, the directive attribute takes precedence. For example, `file="src/main.rs"` on the `::: starter` line overrides `filename=...` in the fence.
+
 **Content:** A fenced code block with the starter code.
 
 **Rendering:**
@@ -273,7 +299,11 @@ The solution uses `println!` because...
 - Optionally followed by a `### Explanation` section with markdown
 
 **Rendering:**
-- Hidden by default with a "Show Solution" button
+- The `reveal` attribute controls visibility:
+  - `on-demand`: Hidden by default unless globally configured to reveal
+  - `always`: Shown expanded regardless of global config
+  - `never`: Kept hidden; the UI hides the toggle
+- Hidden-by-default solutions have a "Show Solution" control
 - Warning text encouraging attempt first
 - When revealed, shows code + explanation
 
@@ -309,6 +339,10 @@ fn test_negative() {
 
 **Content:** A fenced code block with test code.
 
+**Code fence info:**
+- The fence language (e.g., ` ```rust`) sets the tests language if not specified via `language=...` on the directive.
+- If both are present, the directive attribute `language=...` takes precedence over the fence info.
+
 **Mode Behavior:**
 
 | Mode | Description |
@@ -320,6 +354,9 @@ fn test_negative() {
 - Code block with syntax highlighting
 - "Run Tests" button (if mode=playground)
 - Results area for displaying pass/fail output
+
+Implementation details:
+- Playground execution runs tests as a library (crateType `lib`), combining starter code with test code.
 
 **Playground Limitations:**
 - Only `std` library available

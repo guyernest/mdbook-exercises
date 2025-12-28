@@ -312,6 +312,31 @@ fn parse_inline_attributes(attrs_str: &str) -> HashMap<String, String> {
     attrs
 }
 
+/// Parse a code fence info string like "rust,filename=src/main.rs,ignore" into
+/// (language, attribute map). The first non key=value token is treated as language.
+fn parse_fence_info(info: &str) -> (String, HashMap<String, String>) {
+    let mut lang = String::new();
+    let mut attrs = HashMap::new();
+    for (i, raw) in info.split(',').enumerate() {
+        let token = raw.trim();
+        if token.is_empty() {
+            continue;
+        }
+        if i == 0 && !token.contains('=') {
+            lang = token.to_string();
+            continue;
+        }
+        if let Some(eq) = token.find('=') {
+            let (k, v) = token.split_at(eq);
+            attrs.insert(k.trim().to_string(), v[1..].trim().to_string());
+        } else {
+            // boolean flag
+            attrs.insert(token.to_string(), "true".to_string());
+        }
+    }
+    (lang, attrs)
+}
+
 /// Process a completed directive block.
 fn process_block(exercise: &mut Exercise, directive: &Directive, content: &str) -> ParseResult<()> {
     match directive.name.as_str() {
@@ -320,7 +345,7 @@ fn process_block(exercise: &mut Exercise, directive: &Directive, content: &str) 
         "discussion" => parse_discussion_block(exercise, content)?,
         "starter" => parse_starter_block(exercise, &directive.attributes, content)?,
         "hint" => parse_hint_block(exercise, &directive.attributes, content)?,
-        "solution" => parse_solution_block(exercise, content)?,
+        "solution" => parse_solution_block(exercise, &directive.attributes, content)?,
         "tests" => parse_tests_block(exercise, &directive.attributes, content)?,
         "reflection" => parse_reflection_block(exercise, content)?,
         _ => {
@@ -444,14 +469,43 @@ fn parse_starter_block(
     attrs: &HashMap<String, String>,
     content: &str,
 ) -> ParseResult<()> {
-    let (language, code) = extract_code_block(content);
+    let (language_raw, code) = extract_code_block(content);
+    eprintln!("DEBUG starter content first 60: {}", content.lines().next().unwrap_or("").chars().take(60).collect::<String>());
+
+    // Pull filename and language from directive attrs and/or fence info
+    let mut filename = attrs.get("file").cloned();
+    let mut language = attrs.get("language").cloned();
+
+    // Prefer info from extract_code_block; fallback to scanning first fence line
+    let mut info_opt = language_raw;
+    if info_opt.is_none() {
+        for line in content.lines() {
+            let t = line.trim();
+            if t.starts_with("```") {
+                let info = t.trim_start_matches('`').trim().to_string();
+                if !info.is_empty() { info_opt = Some(info); }
+                break;
+            }
+        }
+    }
+
+    if let Some(info) = info_opt {
+        let (lang_clean, fence_attrs) = parse_fence_info(&info);
+        if language.is_none() && !lang_clean.is_empty() {
+            language = Some(lang_clean);
+        }
+        if filename.is_none() {
+            if let Some(f) = fence_attrs.get("filename") {
+                filename = Some(f.clone());
+            } else if let Some(f) = fence_attrs.get("file") {
+                filename = Some(f.clone());
+            }
+        }
+    }
 
     exercise.starter = Some(StarterCode {
-        filename: attrs.get("file").cloned(),
-        language: attrs
-            .get("language")
-            .cloned()
-            .unwrap_or_else(|| language.unwrap_or_else(|| "rust".to_string())),
+        filename,
+        language: language.unwrap_or_else(|| "rust".to_string()),
         code,
     });
 
@@ -488,18 +542,29 @@ fn parse_hint_block(
 }
 
 /// Parse the solution block.
-fn parse_solution_block(exercise: &mut Exercise, content: &str) -> ParseResult<()> {
+fn parse_solution_block(exercise: &mut Exercise, attrs: &HashMap<String, String>, content: &str) -> ParseResult<()> {
     // Split content into code and explanation
     let (language, code) = extract_code_block(content);
 
     // Look for explanation after the code block
     let explanation = extract_explanation(content);
 
-    exercise.solution = Some(Solution {
+    let mut sol = Solution {
         code,
         language: language.unwrap_or_else(|| "rust".to_string()),
         explanation,
-    });
+        ..Default::default()
+    };
+
+    if let Some(reveal) = attrs.get("reveal").map(|s| s.to_lowercase()) {
+        sol.reveal = match reveal.as_str() {
+            "always" => SolutionReveal::Always,
+            "never" => SolutionReveal::Never,
+            _ => SolutionReveal::OnDemand,
+        };
+    }
+
+    exercise.solution = Some(sol);
 
     Ok(())
 }
@@ -510,21 +575,22 @@ fn parse_tests_block(
     attrs: &HashMap<String, String>,
     content: &str,
 ) -> ParseResult<()> {
-    let (language, code) = extract_code_block(content);
+    let (language_raw, code) = extract_code_block(content);
 
     let mode = attrs
         .get("mode")
         .map(|m| m.parse().unwrap_or(TestMode::Playground))
         .unwrap_or(TestMode::Playground);
 
-    exercise.tests = Some(TestBlock {
-        language: attrs
-            .get("language")
-            .cloned()
-            .unwrap_or_else(|| language.unwrap_or_else(|| "rust".to_string())),
-        code,
-        mode,
-    });
+    let mut language = attrs.get("language").cloned();
+    if let Some(info) = language_raw {
+        let (lang_clean, _fa) = parse_fence_info(&info);
+        if language.is_none() && !lang_clean.is_empty() {
+            language = Some(lang_clean);
+        }
+    }
+
+    exercise.tests = Some(TestBlock { language: language.unwrap_or_else(|| "rust".to_string()), code, mode });
 
     Ok(())
 }
@@ -556,7 +622,7 @@ fn extract_code_block(content: &str) -> (Option<String>, String) {
                 in_code_block = true;
                 let lang = line.trim().trim_start_matches('`').trim();
                 if !lang.is_empty() {
-                    language = Some(lang.split(',').next().unwrap_or("").to_string());
+                    language = Some(lang.to_string());
                 }
             }
         } else if in_code_block {
@@ -702,5 +768,91 @@ difficulty: advanced
         assert_eq!(exercise.metadata.id, "test");
         assert_eq!(exercise.metadata.difficulty, Difficulty::Beginner);
         // The second block should be ignored, so difficulty should remain Beginner
+    }
+
+    #[test]
+    fn test_starter_filename_from_fence_info() {
+        let markdown = r#"
+::: exercise
+id: fence-file-test
+difficulty: beginner
+:::
+
+::: starter
+```rust,filename=src/main.rs
+fn main() {}
+```
+:::
+"#;
+
+        let exercise = parse_exercise(markdown).unwrap();
+        let starter = exercise.starter.as_ref().expect("starter missing");
+        assert_eq!(starter.language, "rust");
+        assert_eq!(starter.filename.as_deref(), Some("src/main.rs"));
+    }
+
+    #[test]
+    fn test_starter_filename_attr_precedence_over_fence() {
+        let markdown = r#"
+::: exercise
+id: fence-vs-attr
+difficulty: beginner
+:::
+
+::: starter file="src/lib.rs"
+```rust,filename=src/main.rs
+fn main() {}
+```
+:::
+"#;
+
+        let exercise = parse_exercise(markdown).unwrap();
+        let starter = exercise.starter.as_ref().expect("starter missing");
+        // Attribute should take precedence over fence info
+        assert_eq!(starter.filename.as_deref(), Some("src/lib.rs"));
+        assert_eq!(starter.language, "rust");
+    }
+
+    #[test]
+    fn test_tests_language_from_fence_info() {
+        let markdown = r#"
+::: exercise
+id: tests-lang-fence
+difficulty: beginner
+:::
+
+::: tests
+```rust
+#[test]
+fn it_works() { assert!(true); }
+```
+:::
+"#;
+
+        let exercise = parse_exercise(markdown).unwrap();
+        let tests = exercise.tests.as_ref().expect("tests missing");
+        assert_eq!(tests.language, "rust");
+    }
+
+    #[test]
+    fn test_tests_language_attr_precedence_over_fence() {
+        let markdown = r#"
+::: exercise
+id: tests-lang-attr
+difficulty: beginner
+:::
+
+::: tests language=python
+```rust
+#[test]
+fn it_works() { assert!(true); }
+```
+:::
+"#;
+
+        let exercise = parse_exercise(markdown).unwrap();
+        let tests = exercise.tests.as_ref().expect("tests missing");
+        // Attribute should override fence info
+        assert_eq!(tests.language, "python");
     }
 }

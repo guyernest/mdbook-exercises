@@ -46,7 +46,12 @@
      */
     function getExerciseId(container) {
         const idEl = container.querySelector('.exercise-id');
-        return idEl ? idEl.textContent.trim() : null;
+        if (idEl) return idEl.textContent.trim();
+        const article = container.classList.contains('exercise') ? container : container.querySelector('.exercise');
+        if (article && article.dataset && article.dataset.exerciseId) {
+            return article.dataset.exerciseId;
+        }
+        return null;
     }
 
     /**
@@ -147,8 +152,17 @@
 
     function initSolutionToggles() {
         document.querySelectorAll('.solution-toggle').forEach(toggle => {
-            toggle.addEventListener('click', function() {
-                const content = this.nextElementSibling;
+            // Initialize label and aria-expanded from current state
+            const details = toggle.closest('details');
+            if (details) {
+                toggle.setAttribute('aria-expanded', details.open ? 'true' : 'false');
+                toggle.textContent = details.open ? 'Hide Solution' : 'Show Solution';
+            }
+
+            toggle.addEventListener('click', function(e) {
+                e.preventDefault();
+                const details = this.closest('details');
+                if (!details) return;
 
                 if (!this.dataset.confirmed) {
                     if (!confirm('Are you sure you want to reveal the solution? Try the hints first!')) {
@@ -157,9 +171,10 @@
                     this.dataset.confirmed = 'true';
                 }
 
-                const isExpanded = this.getAttribute('aria-expanded') === 'true';
-                this.setAttribute('aria-expanded', !isExpanded);
-                content.classList.toggle('show');
+                details.open = !details.open;
+                const open = details.open;
+                this.setAttribute('aria-expanded', open ? 'true' : 'false');
+                this.textContent = open ? 'Hide Solution' : 'Show Solution';
             });
         });
     }
@@ -171,37 +186,61 @@
     function initProgressTracking() {
         const progress = getProgress();
 
-        document.querySelectorAll('.exercise-container').forEach(container => {
+        document.querySelectorAll('.exercise-container, .exercise').forEach(container => {
             const exerciseId = getExerciseId(container);
             if (!exerciseId) return;
 
+            const article = container.classList.contains('exercise') ? container : container.querySelector('.exercise');
+            const completeBtn = container.querySelector('.btn-complete');
             const checkbox = container.querySelector('.progress-indicator input[type="checkbox"]');
-            if (!checkbox) return;
+
+            const markCompletedUI = (completed) => {
+                if (checkbox) {
+                    checkbox.checked = completed;
+                    checkbox.closest('.progress-indicator')?.classList.toggle('completed', completed);
+                }
+                if (article) {
+                    article.classList.toggle('completed', completed);
+                }
+            };
 
             // Restore saved state
-            if (progress[exerciseId]) {
-                checkbox.checked = true;
-                checkbox.closest('.progress-indicator')?.classList.add('completed');
+            if (progress[exerciseId]?.completed) {
+                markCompletedUI(true);
             }
 
-            // Handle changes
-            checkbox.addEventListener('change', function() {
-                const currentProgress = getProgress();
+            // Handle complete button
+            if (completeBtn) {
+                completeBtn.addEventListener('click', function() {
+                    const current = getProgress();
+                    const already = !!current[exerciseId]?.completed;
+                    if (already) {
+                        delete current[exerciseId];
+                        markCompletedUI(false);
+                    } else {
+                        current[exerciseId] = { completed: true, timestamp: new Date().toISOString() };
+                        markCompletedUI(true);
+                        showNotification('Exercise marked as complete!', 'success');
+                    }
+                    saveProgress(current);
+                });
+            }
 
-                if (this.checked) {
-                    currentProgress[exerciseId] = {
-                        completed: true,
-                        timestamp: new Date().toISOString()
-                    };
-                    this.closest('.progress-indicator')?.classList.add('completed');
-                    showNotification('Exercise marked as complete!', 'success');
-                } else {
-                    delete currentProgress[exerciseId];
-                    this.closest('.progress-indicator')?.classList.remove('completed');
-                }
-
-                saveProgress(currentProgress);
-            });
+            // Handle checkbox if present
+            if (checkbox) {
+                checkbox.addEventListener('change', function() {
+                    const current = getProgress();
+                    if (this.checked) {
+                        current[exerciseId] = { completed: true, timestamp: new Date().toISOString() };
+                        markCompletedUI(true);
+                        showNotification('Exercise marked as complete!', 'success');
+                    } else {
+                        delete current[exerciseId];
+                        markCompletedUI(false);
+                    }
+                    saveProgress(current);
+                });
+            }
         });
     }
 
@@ -214,7 +253,7 @@
             button.addEventListener('click', async function() {
                 console.log("Run tests button clicked.");
 
-                const container = this.closest('.exercise-container');
+                const container = this.closest('.exercise-container, .exercise');
                 console.log("Container element:", container);
 
                 const starterContainer = container.querySelector('.exercise-starter');
@@ -337,7 +376,7 @@
                 channel: 'stable',
                 mode: 'debug',
                 edition: '2021',
-                crateType: 'bin',
+                crateType: 'lib',
                 tests: true,
                 code: code,
                 backtrace: false
@@ -401,9 +440,10 @@
             // Ctrl/Cmd + Enter to run tests
             if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
                 const activeElement = document.activeElement;
-                if (activeElement && activeElement.closest('.exercise-container')) {
-                    const container = activeElement.closest('.exercise-container');
-                    const runBtn = container.querySelector('.run-tests-btn');
+                if (activeElement) {
+                    const container = activeElement.closest('.exercise-container, .exercise');
+                    if (!container) return;
+                    const runBtn = container.querySelector('.btn-run-tests, .run-tests-btn');
                     if (runBtn && !runBtn.disabled) {
                         e.preventDefault();
                         runBtn.click();

@@ -1,0 +1,23 @@
+[book]
+authors = ["Example"]
+language = "en"
+multilingual = false
+src = "src"
+title = "Sample Book: Exercises + Quiz"
+
+[preprocessor.exercises]
+enabled = true
+manage_assets = true
+reveal_hints = false
+reveal_solution = false
+playground = true
+progress_tracking = true
+
+# Optional mdbook-quiz config (requires mdbook-quiz installed)
+[preprocessor.quiz]
+# quiz-specific config goes here
+
+[output.html]
+# Assets are installed to src/theme/ by manage_assets
+additional-css = ["theme/exercises.css"]
+additional-js = ["theme/exercises.js"]

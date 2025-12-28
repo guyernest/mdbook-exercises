@@ -186,6 +186,31 @@ fn main() {
 - `file` - Suggested filename (displayed in header)
 - `language` - Syntax highlighting language (default: rust)
 
+Code fence info:
+- You can also include the language and optional attributes in the fenced code block info string.
+- Supported keys: `filename` or `file` for suggested filename.
+
+Examples:
+
+````markdown
+::: starter
+```rust,filename=src/lib.rs
+pub fn run() {}
+```
+:::
+````
+
+````markdown
+::: starter file="src/main.rs"
+```rust
+fn main() {}
+```
+:::
+````
+
+Precedence:
+- If both the directive and the fence info specify the same property, the directive attribute wins. For example, `file="src/main.rs"` overrides `filename=...` in the fence.
+
 ### Hint Block
 
 Progressive hints with levels:
@@ -228,6 +253,16 @@ Why this solution works...
 :::
 ````
 
+Attributes:
+- `reveal` — `on-demand` | `always` | `never` (controls visibility)
+
+Rendering:
+- The `reveal` attribute controls visibility:
+  - `on-demand`: Hidden by default unless globally configured to reveal
+  - `always`: Shown expanded regardless of global config
+  - `never`: Kept hidden; the UI hides the toggle
+- Hidden-by-default solutions have a "Show Solution" control
+
 ### Tests Block
 
 Test code that can optionally run in the browser:
@@ -245,12 +280,20 @@ fn test_example() {
 
 **Attributes:**
 - `mode` - Either `playground` (run in browser) or `local` (display only)
+- `language` - Programming language (defaults to the fence language, if present)
 
 When `mode=playground`:
 - A "Run Tests" button appears
 - User code is combined with test code
 - Sent to play.rust-lang.org for execution
 - Results displayed inline
+
+Code fence info:
+- The fence language (e.g., ```` ```rust ````) sets `language` if the directive doesn’t specify it.
+- If both are present, the directive attribute `language=...` takes precedence over the fence.
+
+Implementation details:
+- Playground execution runs tests as a library (crateType `lib`), combining starter code with test code.
 
 ### Reflection Block
 
@@ -304,6 +347,8 @@ Exercise completion is tracked in localStorage:
 
 ```toml
 [preprocessor.exercises]
+# Enable/disable the preprocessor
+enabled = true
 # Show all hints by default (useful for instructor view)
 reveal_hints = false
 
@@ -318,6 +363,9 @@ playground_url = "https://play.rust-lang.org"
 
 # Enable progress tracking
 progress_tracking = true
+
+# Automatically copy CSS/JS assets to your book's theme directory
+manage_assets = false
 ```
 
 ## Library Usage
@@ -373,8 +421,56 @@ See the [examples](./examples) directory for complete exercise examples:
 
 - `hello-world.md` - Basic exercise structure
 - `calculator.md` - Multi-hint exercise with tests
+- `multilang-python.md` - Non-Rust example (Python), local tests
+- `double-exercise.md` - Two exercises in one chapter (use include syntax in mdBook for best results)
 
 **Live Demo:** View the rendered examples at [guyernest.github.io/mdbook-exercises](https://guyernest.github.io/mdbook-exercises/)
+
+### Sample mdBook
+
+See the [sample-book](./sample-book) directory for a minimal mdBook configured to use mdbook-exercises (and optionally mdbook-quiz). It includes:
+- `book.toml` with `[preprocessor.exercises]` and optional `[preprocessor.quiz]`
+- `src/SUMMARY.md`, `src/intro.md`, and `src/exercises.md`
+- `src/exercises.md` demonstrates including exercises via `{{#exercise ...}}` from this repository’s examples.
+
+### Using with mdbook-quiz
+
+You can use mdbook-exercises alongside mdbook-quiz. A common book.toml setup looks like:
+
+```toml
+[preprocessor.quiz]
+# mdbook-quiz configuration here
+
+[preprocessor.exercises]
+enabled = true
+manage_assets = true   # copies exercises.css/js to src/theme/
+reveal_hints = false
+reveal_solution = false
+playground = true
+progress_tracking = true
+
+[output.html]
+# mdBook will load the installed assets from your theme dir
+additional-css = ["theme/exercises.css"]
+additional-js  = ["theme/exercises.js"]
+```
+
+At build time you will see a startup log message similar to mdbook-quiz:
+
+```
+[INFO] (mdbook-exercises): Running the mdbook-exercises preprocessor (vX.Y.Z)
+```
+
+## Precedence Rules
+
+- Starter:
+  - Directive attributes override fence info (e.g., `file="..."` beats `filename=...`).
+  - Fence language sets default when `language` attribute is omitted.
+- Tests:
+  - Directive `language=...` overrides fence language. Fence language sets default when omitted.
+  - `mode` is taken from directive attributes.
+- Solution:
+  - `reveal` on the solution overrides global config (`reveal_solution`).
 
 ## Contributing
 

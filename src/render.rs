@@ -41,6 +41,12 @@ pub struct RenderConfig {
 
     /// Enable progress tracking via localStorage
     pub enable_progress: bool,
+
+    /// Enable or disable this preprocessor (checked in preprocessor run)
+    pub enabled: bool,
+
+    /// If true, copy CSS/JS assets into the book's theme directory
+    pub manage_assets: bool,
 }
 
 impl Default for RenderConfig {
@@ -51,6 +57,8 @@ impl Default for RenderConfig {
             enable_playground: true,
             playground_url: "https://play.rust-lang.org".to_string(),
             enable_progress: true,
+            enabled: true,
+            manage_assets: false,
         }
     }
 }
@@ -219,6 +227,13 @@ fn render_header(exercise: &Exercise) -> String {
         ));
         html.push('\n');
     }
+
+    // Exercise id for reference and JS hooks
+    html.push_str(&format!(
+        r#"  <code class=\"exercise-id\">{}</code>"#,
+        escape_html(&exercise.metadata.id)
+    ));
+    html.push('\n');
 
     // Metadata badges
     html.push_str(r#"  <div class="exercise-meta">"#);
@@ -473,7 +488,13 @@ fn render_solution(solution: &Solution, reveal: bool, exercise_id: &str) -> Stri
     ));
     html.push('\n');
 
-    let open_attr = if reveal { " open" } else { "" };
+    // Compute open attribute: solution-specific policy overrides config
+    let should_open = match solution.reveal {
+        crate::types::SolutionReveal::Always => true,
+        crate::types::SolutionReveal::Never => false,
+        crate::types::SolutionReveal::OnDemand => reveal,
+    };
+    let open_attr = if should_open { " open" } else { "" };
     html.push_str(&format!(
         r#"  <details class="solution"{}>
     <summary>

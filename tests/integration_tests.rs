@@ -129,7 +129,7 @@ fn test_add() {
 
     // Verify starter code
     let starter = exercise.starter.as_ref().expect("Should have starter");
-    assert_eq!(starter.language, "rust,filename=src/main.rs");
+    assert_eq!(starter.language, "rust");
     assert!(starter.code.contains("fn add"));
 
     // Verify hints
@@ -346,6 +346,7 @@ fn test_render_config() {
             code: "fn main() {}".to_string(),
             language: "rust".to_string(),
             explanation: None,
+            ..Default::default()
         }),
         ..Default::default()
     };
@@ -367,6 +368,69 @@ fn test_render_config() {
     };
     let html = render_exercise_with_config(&exercise, &config).expect("Failed to render");
     assert!(html.contains(r#"<details class="solution" open>"#));
+}
+
+/// Test solution reveal attribute overrides configuration.
+#[test]
+#[cfg(feature = "render")]
+fn test_solution_reveal_policy_overrides_config() {
+    // reveal=always should force open even if config says false
+    let markdown_always = r#"
+::: exercise
+id: sol-reveal-always
+difficulty: beginner
+:::
+
+::: solution reveal=always
+```rust
+fn main() {}
+```
+:::
+"#;
+    let ex_always = parse_exercise(markdown_always).expect("parse");
+    let html_always = render_exercise_with_config(&ex_always, &RenderConfig { reveal_solution: false, ..Default::default() }).expect("render");
+    if !html_always.contains(r#"<details class="solution" open>"#) {
+        eprintln!("HTML(always) =>\n{}", html_always);
+    }
+    assert!(html_always.contains(r#"<details class="solution" open>"#));
+
+    // reveal=never should keep closed even if config says true
+    let markdown_never = r#"
+::: exercise
+id: sol-reveal-never
+difficulty: beginner
+:::
+
+::: solution reveal=never
+```rust
+fn main() {}
+```
+:::
+"#;
+    let ex_never = parse_exercise(markdown_never).expect("parse");
+    let html_never = render_exercise_with_config(&ex_never, &RenderConfig { reveal_solution: true, ..Default::default() }).expect("render");
+    assert!(html_never.contains(r#"<details class="solution">"#));
+    assert!(!html_never.contains(r#"<details class="solution" open>"#));
+
+    // on-demand should follow config
+    let markdown_default = r#"
+::: exercise
+id: sol-reveal-default
+difficulty: beginner
+:::
+
+::: solution
+```rust
+fn main() {}
+```
+:::
+"#;
+    let ex_default = parse_exercise(markdown_default).expect("parse");
+    let html_open = render_exercise_with_config(&ex_default, &RenderConfig { reveal_solution: true, ..Default::default() }).expect("render");
+    assert!(html_open.contains(r#"<details class="solution" open>"#));
+    let html_closed = render_exercise_with_config(&ex_default, &RenderConfig { reveal_solution: false, ..Default::default() }).expect("render");
+    assert!(html_closed.contains(r#"<details class="solution">"#));
+    assert!(!html_closed.contains(r#"<details class="solution" open>"#));
 }
 
 /// Test JSON serialization of exercises.

@@ -109,6 +109,22 @@
     color: #721c24;
 }
 
+/* Support renderer's badge classes */
+.exercise-header .badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.exercise-header .badge.difficulty.beginner { background: #d4edda; color: #155724; }
+.exercise-header .badge.difficulty.intermediate { background: #fff3cd; color: #856404; }
+.exercise-header .badge.difficulty.advanced { background: #f8d7da; color: #721c24; }
+.exercise-header .badge.time { background: var(--quote-bg, #f7f7f7); color: var(--fg, #333); }
+.exercise-header .badge.prerequisites { background: var(--quote-bg, #f7f7f7); color: var(--fg, #333); }
+
 .exercise-time {
     font-size: 0.85rem;
     color: var(--fg, #333);
@@ -254,7 +270,8 @@
     border-top: 1px solid var(--quote-border, #5c6773);
 }
 
-.starter-header {
+.starter-header,
+.code-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -263,12 +280,14 @@
     border-bottom: 1px solid var(--quote-border, #5c6773);
 }
 
-.starter-header h4 {
+.starter-header h4,
+.code-header h4 {
     margin: 0;
     font-size: 0.9rem;
 }
 
-.starter-filename {
+.starter-filename,
+.filename {
     font-family: var(--mono-font, monospace);
     font-size: 0.8rem;
     color: var(--inline-code-color, #6e6b5e);
@@ -277,12 +296,15 @@
     border-radius: 4px;
 }
 
-.code-toolbar {
+.code-toolbar,
+.code-actions {
     display: flex;
     gap: 0.5rem;
 }
 
-.code-toolbar button {
+.code-toolbar button,
+.code-actions .btn,
+.btn {
     padding: 0.4rem 0.8rem;
     border: 1px solid var(--quote-border, #5c6773);
     border-radius: 4px;
@@ -293,13 +315,25 @@
     transition: all 0.2s ease;
 }
 
-.code-toolbar button:hover {
+.code-toolbar button:hover,
+.code-actions .btn:hover,
+.btn:hover {
     background: var(--quote-bg, #f7f7f7);
 }
 
-.code-toolbar button:active {
+.code-toolbar button:active,
+.code-actions .btn:active,
+.btn:active {
     transform: scale(0.98);
 }
+
+/* Mark Complete button */
+.btn.btn-complete {
+    background: #e9f7ef;
+    border-color: #28a745;
+    color: #1e7e34;
+}
+
 
 .starter-code {
     position: relative;
@@ -445,6 +479,11 @@
 }
 
 .solution-content.show {
+    display: block;
+}
+
+/* When <details> is open, always show the solution content */
+.exercise-solution details[open] .solution-content {
     display: block;
 }
 

@@ -12,6 +12,10 @@ View the rendered examples online: **[guyernest.github.io/mdbook-exercises](http
 |---------|------------|-------------|
 | [hello-world.md](./hello-world.md) | Beginner | Introduction to Rust functions and the `format!` macro |
 | [calculator.md](./calculator.md) | Intermediate | Error handling with `Result<T, E>` and pattern matching |
+| [multilang-python.md](./multilang-python.md) | Beginner | Non-Rust example (Python), local tests |
+| [double-exercise.md](./double-exercise.md) | Mixed | Two exercises in one chapter |
+| [multilang-js.md](./multilang-js.md) | Beginner | JavaScript example (Node.js), local tests |
+| [solution-reveal.md](./solution-reveal.md) | Beginner | Demonstrates `reveal=always` for solutions |
 
 ## Building Examples Locally
 

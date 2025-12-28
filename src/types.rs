@@ -142,6 +142,10 @@ pub struct Solution {
 
     /// Optional explanation (markdown)
     pub explanation: Option<String>,
+
+    /// Reveal policy for this solution (on-demand/always/never)
+    #[serde(skip)]
+    pub reveal: SolutionReveal,
 }
 
 impl Default for Solution {
@@ -150,8 +154,25 @@ impl Default for Solution {
             code: String::new(),
             language: "rust".to_string(),
             explanation: None,
+            reveal: SolutionReveal::OnDemand,
         }
     }
+}
+
+/// When to reveal a solution in the UI.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(rename_all = "lowercase")]
+pub enum SolutionReveal {
+    /// Hidden behind a toggle
+    OnDemand,
+    /// Shown expanded
+    Always,
+    /// Never revealed (UI hides the toggle)
+    Never,
+}
+
+impl Default for SolutionReveal {
+    fn default() -> Self { SolutionReveal::OnDemand }
 }
 
 /// Test code for verifying solutions.
