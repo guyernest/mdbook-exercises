@@ -429,6 +429,7 @@ See the [examples](./examples) directory for complete exercise examples:
 ### Course Developer Guides
 
 - Organizing and integrating exercises (include-only pattern): see `docs/exercises-integration.md`.
+- Setup exercises (ID suffix `-setup`, position `00`): see `docs/setup-exercises.md`.
 
 ### Sample mdBook
 
