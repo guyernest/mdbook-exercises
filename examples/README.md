@@ -16,6 +16,7 @@ View the rendered examples online: **[guyernest.github.io/mdbook-exercises](http
 | [double-exercise.md](./double-exercise.md) | Mixed | Two exercises in one chapter |
 | [multilang-js.md](./multilang-js.md) | Beginner | JavaScript example (Node.js), local tests |
 | [solution-reveal.md](./solution-reveal.md) | Beginner | Demonstrates `reveal=always` for solutions |
+| [ch02-environment-setup.md](./ch02-environment-setup.md) | Beginner | Setup exercise (ID suffix `-setup`, position `00`) |
 
 ## Building Examples Locally
 

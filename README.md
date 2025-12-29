@@ -426,6 +426,10 @@ See the [examples](./examples) directory for complete exercise examples:
 
 **Live Demo:** View the rendered examples at [guyernest.github.io/mdbook-exercises](https://guyernest.github.io/mdbook-exercises/)
 
+### Course Developer Guides
+
+- Organizing and integrating exercises (include-only pattern): see `docs/exercises-integration.md`.
+
 ### Sample mdBook
 
 See the [sample-book](./sample-book) directory for a minimal mdBook configured to use mdbook-exercises (and optionally mdbook-quiz). It includes:
