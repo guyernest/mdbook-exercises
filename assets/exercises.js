@@ -576,6 +576,7 @@
         initEditableCode();
         initKeyboardShortcuts();
         initNavHighlighting();
+        applySyntaxHighlighting();
 
         console.log('mdbook-exercises initialized');
     }
@@ -596,3 +597,13 @@
         };
     }
 })();
+
+// Apply syntax highlighting if highlight.js is available (as in mdBook)
+function applySyntaxHighlighting() {
+    if (typeof window === 'undefined') return;
+    const hljs = window.hljs;
+    if (!hljs || typeof hljs.highlightElement !== 'function') return;
+    document.querySelectorAll('.exercise pre code').forEach((block) => {
+        try { hljs.highlightElement(block); } catch (_) { /* ignore */ }
+    });
+}

@@ -470,7 +470,15 @@ fn parse_starter_block(
     content: &str,
 ) -> ParseResult<()> {
     let (language_raw, code) = extract_code_block(content);
-    eprintln!("DEBUG starter content first 60: {}", content.lines().next().unwrap_or("").chars().take(60).collect::<String>());
+
+    if code.trim().is_empty() {
+        let id = if !exercise.metadata.id.is_empty() { &exercise.metadata.id } else { "<unknown-id>" };
+        eprintln!(
+            "[WARN] (mdbook-exercises): Starter block has no fenced code; ignored for exercise '{}'",
+            id
+        );
+        return Ok(());
+    }
 
     // Pull filename and language from directive attrs and/or fence info
     let mut filename = attrs.get("file").cloned();
@@ -555,6 +563,15 @@ fn parse_solution_block(exercise: &mut Exercise, attrs: &HashMap<String, String>
         explanation,
         ..Default::default()
     };
+
+    if sol.code.trim().is_empty() {
+        let id = if !exercise.metadata.id.is_empty() { &exercise.metadata.id } else { "<unknown-id>" };
+        eprintln!(
+            "[WARN] (mdbook-exercises): Solution block has no fenced code; ignored for exercise '{}'",
+            id
+        );
+        return Ok(());
+    }
 
     if let Some(reveal) = attrs.get("reveal").map(|s| s.to_lowercase()) {
         sol.reveal = match reveal.as_str() {

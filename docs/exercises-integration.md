@@ -154,15 +154,15 @@ If you use other preprocessors that also utilize `:::` blocks (e.g., admonitions
 
 With `mdbook-exercises` v0.1.3+, the preprocessor replaces the full directive region when using inline style, and the include-only pattern eliminates duplication entirely.
 
-### Linting: Empty Tests Blocks
+### Linting: Empty Blocks (starter/solution/tests)
 
-To help authors catch accidental empty `::: tests` blocks (which are ignored and don’t render), you can add a CI step that fails when found. This repository includes an example linter:
+To help authors catch accidental empty `::: starter`, `::: solution`, or `::: tests` blocks (which are ignored and don’t render), you can add a CI step that fails when found. This repository includes an example linter:
 
 ```bash
 cargo run --example lint_empty_tests -- path/to/your/book/src
 ```
 
-It scans Markdown files under the given path and exits with a non‑zero status if it finds a `::: tests` block with no code content.
+It scans Markdown files under the given path and exits with a non‑zero status if it finds a `::: starter`, `::: solution`, or `::: tests` block with no fenced code or no code content.
 
 ### CI Integration Example (GitHub Actions)
 
@@ -179,7 +179,7 @@ jobs:
       - name: Setup Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Run mdbook-exercises linter (empty tests)
+      - name: Run mdbook-exercises linter (empty starter/solution/tests)
         run: |
           # Adjust the path to your mdBook source directory
           cargo run --example lint_empty_tests -- pmcp-course/src
@@ -189,7 +189,7 @@ jobs:
           mdbook build pmcp-course
 ```
 
-This fails the workflow if any empty `::: tests` blocks are present.
+This fails the workflow if any empty `::: starter`, `::: solution`, or `::: tests` blocks are present.
 
 
 ## Conventions and Tips

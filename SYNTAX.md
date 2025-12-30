@@ -186,7 +186,13 @@ fn main() {
 :::
 ```
 
-**Code fence info:**
+**Code fences are required:**
+
+Starter content must include a fenced code block. The `language=...` attribute on the
+`::: starter` line is metadata; the parser extracts code from the fenced block. Without a
+fenced block, the starter is ignored and a warning is emitted during build.
+
+**Code fence language and info:**
 
 The fenced code block info string may include the language and optional key=value pairs. Supported keys:
 
@@ -551,3 +557,6 @@ This syntax specification follows semantic versioning:
 - **Major**: Breaking changes to existing directive syntax
 - **Minor**: New optional directives or attributes
 - **Patch**: Clarifications, typo fixes
+**Code fences are required:**
+
+Solutions should include a fenced code block. The parser extracts code from the fenced block; if none is present, the solution code is ignored and a warning is emitted.

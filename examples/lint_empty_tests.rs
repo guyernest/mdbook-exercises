@@ -58,34 +58,45 @@ fn lint_file(path: &Path, violations: &mut Vec<Violation>) {
     let Ok(text) = fs::read_to_string(path) else { return; };
     let mut lines = text.lines().enumerate().peekable();
     while let Some((i, line)) = lines.next() {
-        if line.trim_start().starts_with("::: tests") {
-            // Enter tests block until closing ':::'
-            let mut in_block = true;
-            let mut saw_fence = false;
-            let mut code_empty = true;
-            while let Some((_, l)) = lines.next() {
-                let t = l.trim_end();
-                if t.trim() == ":::" { in_block = false; break; }
-                if t.trim_start().starts_with("```") {
-                    if !saw_fence { saw_fence = true; }
-                    // Collect code until next fence
-                    while let Some(&(k, ln)) = lines.peek() {
-                        let tt = ln.trim_end();
-                        if tt.trim_start().starts_with("```") {
-                            // end of code block
-                            lines.next();
-                            break;
-                        }
-                        if !tt.trim().is_empty() { code_empty = false; }
-                        lines.next();
-                    }
-                }
-                if !in_block { break; }
+        let t = line.trim_start();
+        if t.starts_with("::: tests") {
+            if block_has_empty_or_missing_fence(&mut lines) {
+                violations.push(Violation { file: path.to_path_buf(), line: i + 1 });
             }
-            if !saw_fence || code_empty {
+        } else if t.starts_with("::: starter") {
+            if block_has_empty_or_missing_fence(&mut lines) {
+                violations.push(Violation { file: path.to_path_buf(), line: i + 1 });
+            }
+        } else if t.starts_with("::: solution") {
+            if block_has_empty_or_missing_fence(&mut lines) {
                 violations.push(Violation { file: path.to_path_buf(), line: i + 1 });
             }
         }
     }
 }
 
+fn block_has_empty_or_missing_fence(lines: &mut std::iter::Peekable<std::iter::Enumerate<std::str::Lines<'_>>>) -> bool {
+    // Scan until closing ':::'; ensure at least one fenced code block is present
+    // and that inside the code fence there is at least one non-empty line.
+    let mut saw_fence = false;
+    let mut code_empty = true;
+    while let Some((_, l)) = lines.next() {
+        let t = l.trim_end();
+        let trimmed = t.trim();
+        if trimmed == ":::" { break; }
+        if trimmed.starts_with("```") {
+            if !saw_fence { saw_fence = true; }
+            // consume code lines until next fence
+            while let Some(&(_, ln)) = lines.peek() {
+                let tt = ln.trim_end();
+                if tt.trim_start().starts_with("```") {
+                    lines.next();
+                    break;
+                }
+                if !tt.trim().is_empty() { code_empty = false; }
+                lines.next();
+            }
+        }
+    }
+    !saw_fence || code_empty
+}
