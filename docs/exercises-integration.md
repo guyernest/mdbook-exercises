@@ -164,6 +164,33 @@ cargo run --example lint_empty_tests -- path/to/your/book/src
 
 It scans Markdown files under the given path and exits with a non‑zero status if it finds a `::: tests` block with no code content.
 
+### CI Integration Example (GitHub Actions)
+
+Add a job step before your `mdbook build` to catch empty tests early:
+
+```yaml
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run mdbook-exercises linter (empty tests)
+        run: |
+          # Adjust the path to your mdBook source directory
+          cargo run --example lint_empty_tests -- pmcp-course/src
+
+      - name: Build book
+        run: |
+          mdbook build pmcp-course
+```
+
+This fails the workflow if any empty `::: tests` blocks are present.
+
 
 ## Conventions and Tips
 

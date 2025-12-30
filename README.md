@@ -124,6 +124,18 @@ fn test_greet_name() {
 mdbook build
 ```
 
+## Examples and Live Demo
+
+- Browse ready-to-run examples in the `examples/` folder:
+  - `hello-world.md` — Beginner Rust exercise with hints, solution, and Playground tests
+  - `calculator.md` — Intermediate Rust with local tests
+  - `multilang-python.md` — Python exercise (mode=local)
+  - `multilang-js.md` — JavaScript exercise (mode=local)
+  - `solution-reveal.md` — Demonstrates `reveal=always`
+  - `ch02-environment-setup.md` — Setup exercise (ID suffix `-setup`, position `00`)
+- Minimal sample mdBook (includes examples via `{{#exercise ...}}`): see `sample-book/`
+- Live Demo: https://guyernest.github.io/mdbook-exercises/
+
 ## Directive Reference
 
 ### Exercise Block
