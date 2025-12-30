@@ -577,6 +577,18 @@ fn parse_tests_block(
 ) -> ParseResult<()> {
     let (language_raw, code) = extract_code_block(content);
 
+    // If the tests block has no code content, ignore it so no empty
+    // "Tests" section is rendered.
+    if code.trim().is_empty() {
+        // Emit a helpful warning during builds so authors notice.
+        let id = if !exercise.metadata.id.is_empty() { exercise.metadata.id.clone() } else { "<unknown-id>".to_string() };
+        eprintln!(
+            "[WARN] (mdbook-exercises): Empty tests block ignored for exercise '{}'",
+            id
+        );
+        return Ok(());
+    }
+
     let mode = attrs
         .get("mode")
         .map(|m| m.parse().unwrap_or(TestMode::Playground))

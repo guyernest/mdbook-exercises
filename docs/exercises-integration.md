@@ -154,6 +154,16 @@ If you use other preprocessors that also utilize `:::` blocks (e.g., admonitions
 
 With `mdbook-exercises` v0.1.3+, the preprocessor replaces the full directive region when using inline style, and the include-only pattern eliminates duplication entirely.
 
+### Linting: Empty Tests Blocks
+
+To help authors catch accidental empty `::: tests` blocks (which are ignored and don’t render), you can add a CI step that fails when found. This repository includes an example linter:
+
+```bash
+cargo run --example lint_empty_tests -- path/to/your/book/src
+```
+
+It scans Markdown files under the given path and exits with a non‑zero status if it finds a `::: tests` block with no code content.
+
 
 ## Conventions and Tips
 

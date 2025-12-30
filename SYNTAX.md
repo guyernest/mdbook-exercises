@@ -337,7 +337,7 @@ fn test_negative() {
 :::
 ```
 
-**Content:** A fenced code block with test code.
+**Content:** A fenced code block with test code. If a tests block has no code content, it is ignored and no "Tests" section is rendered.
 
 **Code fence info:**
 - The fence language (e.g., ` ```rust`) sets the tests language if not specified via `language=...` on the directive.
