@@ -1,6 +1,6 @@
 [package]
 name = "mdbook-exercises"
-version = "0.1.3"
+version = "0.1.4"
 edition = "2021"
 authors = ["MLGuy"]
 license = "MIT OR Apache-2.0"
