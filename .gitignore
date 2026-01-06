@@ -22,3 +22,6 @@ Thumbs.db
 
 # Generated example HTML files
 *.html
+
+# mdBook build output
+sample-book/book/
