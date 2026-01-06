@@ -54,13 +54,16 @@ jobs:
           # Copy assets
           cp -r assets site/
 
-          # Render each example
+          # Render each example (skip non-exercise files like README.md)
           for example in examples/*.md; do
             if [ -f "$example" ]; then
               name=$(basename "$example" .md)
               echo "Rendering $name..."
               cargo run --release --example render_example -- "$example"
-              mv "${name}.html" "site/${name}.html"
+              # Only move if HTML was generated (skipped files don't create output)
+              if [ -f "${name}.html" ]; then
+                mv "${name}.html" "site/${name}.html"
+              fi
             fi
           done
 
