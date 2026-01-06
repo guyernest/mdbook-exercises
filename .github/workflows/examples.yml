@@ -173,6 +173,24 @@ jobs:
               </li>
             </ul>
 
+            <h2>UseCase Exercises (Scenario-Based)</h2>
+            <p>These examples demonstrate the new UseCase exercise type for scenario-based analysis with LLM evaluation.</p>
+
+            <ul class="examples-list">
+              <li>
+                <a href="usecase-healthcare.html">
+                  <div class="title">Healthcare SSO & HIPAA Compliance</div>
+                  <div class="description">Intermediate - Design authentication architecture for a healthcare organization</div>
+                </a>
+              </li>
+              <li>
+                <a href="usecase-defense.html">
+                  <div class="title">Defense Multi-Level Security</div>
+                  <div class="description">Advanced - Design MCP architecture for classified environments</div>
+                </a>
+              </li>
+            </ul>
+
             <footer>
               <p>
                 <a href="https://github.com/guyernest/mdbook-exercises">View on GitHub</a> |
