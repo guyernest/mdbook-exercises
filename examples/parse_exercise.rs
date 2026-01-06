@@ -1,4 +1,4 @@
-use mdbook_exercises::parse_exercise;
+use mdbook_exercises::{parse_exercise, ParsedExercise};
 
 fn main() {
     let markdown = r#"
@@ -19,12 +19,15 @@ fn main() {}
     "#;
 
     match parse_exercise(markdown) {
-        Ok(exercise) => {
-            println!("Parsed exercise: {}", exercise.metadata.id);
+        Ok(ParsedExercise::Code(exercise)) => {
+            println!("Parsed code exercise: {}", exercise.metadata.id);
             if let Some(st) = exercise.starter.as_ref() {
                 println!("Starter language: {}", st.language);
                 println!("Starter filename: {:?}", st.filename);
             }
+        }
+        Ok(ParsedExercise::UseCase(exercise)) => {
+            println!("Parsed usecase exercise: {}", exercise.metadata.id);
         }
         Err(e) => eprintln!("Error: {}", e),
     }

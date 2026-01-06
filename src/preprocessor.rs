@@ -56,7 +56,7 @@ impl ExercisesPreprocessor {
     /// Process a single chapter's content.
     fn process_chapter(content: &str, config: &RenderConfig) -> Result<String, Error> {
         // First, check if the content has any exercise directives
-        if !content.contains("::: exercise") {
+        if !content.contains("::: exercise") && !content.contains("::: usecase") {
             return Ok(content.to_string());
         }
 
@@ -339,8 +339,8 @@ impl Preprocessor for FullExercisesPreprocessor {
 impl ExercisesPreprocessor {
     /// Replace the contiguous exercise directive region with rendered HTML, preserving surrounding content.
     fn replace_exercise_region(content: &str, rendered_html: &str) -> String {
-        // Find start of the exercise region
-        let re_start = Regex::new(r"(?m)^\s*:::\s+exercise\b").unwrap();
+        // Find start of the exercise region (exercise or usecase)
+        let re_start = Regex::new(r"(?m)^\s*:::\s+(exercise|usecase)\b").unwrap();
         let Some(m) = re_start.find(content) else { return content.to_string(); };
 
         // Count directive starts/ends to find the end of the region
@@ -464,5 +464,33 @@ fn main() {}
         // Should contain rendered HTML
         assert!(result.contains("exercise-container"));
         assert!(result.contains("test-ex"));
+    }
+    
+    #[test]
+    fn test_process_chapter_with_usecase() {
+        let content = r#"# My UseCase
+
+::: usecase
+id: test-uc
+domain: general
+difficulty: beginner
+:::
+
+::: scenario
+Scen...
+:::
+
+::: prompt
+Prompt...
+:::
+"#;
+        let config = RenderConfig::default();
+
+        let result = ExercisesPreprocessor::process_chapter(content, &config).unwrap();
+
+        // Should contain rendered HTML
+        assert!(result.contains("exercise-container"));
+        assert!(result.contains("test-uc"));
+        assert!(result.contains("usecase-exercise"));
     }
 }

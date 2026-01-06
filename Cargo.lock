@@ -1155,7 +1155,7 @@ dependencies = [
 
 [[package]]
 name = "mdbook-exercises"
-version = "0.1.4"
+version = "0.1.5"
 dependencies = [
  "handlebars 5.1.2",
  "mdbook",

@@ -1,4 +1,4 @@
-use mdbook_exercises::{parse_exercise, render_exercise};
+use mdbook_exercises::{parse_exercise, render_exercise, ParsedExercise};
 use std::fs;
 use std::path::Path;
 
@@ -17,19 +17,25 @@ fn main() {
 
     // Parse it
     println!("Parsing exercise...");
-    let exercise = parse_exercise(&markdown)
+    let parsed = parse_exercise(&markdown)
         .expect("Failed to parse exercise");
 
-    println!("Exercise ID: {}", exercise.metadata.id);
-    println!("Title: {:?}", exercise.title);
+    // Extract info based on exercise type
+    let (id, title_opt) = match &parsed {
+        ParsedExercise::Code(ex) => (ex.metadata.id.clone(), ex.title.clone()),
+        ParsedExercise::UseCase(ex) => (ex.metadata.id.clone(), ex.title.clone()),
+    };
+
+    println!("Exercise ID: {}", id);
+    println!("Title: {:?}", title_opt);
 
     // Render it
     println!("Rendering to HTML...");
-    let exercise_html = render_exercise(&exercise)
+    let exercise_html = render_exercise(&parsed)
         .expect("Failed to render exercise");
 
     // Get title for the page
-    let title = exercise.title.as_deref().unwrap_or("Exercise");
+    let title = title_opt.as_deref().unwrap_or("Exercise");
 
     // Wrap in a full HTML page
     let html = format!(

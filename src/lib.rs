@@ -8,7 +8,7 @@
 //! Use `mdbook-exercises` as a library to parse exercise markdown files:
 //!
 //! ````rust
-//! use mdbook_exercises::{parse_exercise, Exercise};
+//! use mdbook_exercises::{parse_exercise, ParsedExercise};
 //!
 //! let markdown = r#"
 //! # Exercise: Hello World
@@ -27,8 +27,13 @@
 //! :::
 //! "#;
 //!
-//! let exercise = parse_exercise(markdown).expect("Failed to parse");
-//! assert_eq!(exercise.metadata.id, "hello-world");
+//! let parsed = parse_exercise(markdown).expect("Failed to parse");
+//! match parsed {
+//!     ParsedExercise::Code(exercise) => {
+//!         assert_eq!(exercise.metadata.id, "hello-world");
+//!     }
+//!     ParsedExercise::UseCase(_) => panic!("Expected code exercise"),
+//! }
 //! ````
 //!
 //! ## Feature Flags

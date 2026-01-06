@@ -2,10 +2,18 @@
 //!
 //! These tests verify the full flow from markdown to HTML.
 
-use mdbook_exercises::{parse_exercise, Difficulty, Exercise, TestMode};
+use mdbook_exercises::{parse_exercise, Difficulty, Exercise, ParsedExercise, TestMode};
 
 #[cfg(feature = "render")]
 use mdbook_exercises::render::{render_exercise, render_exercise_with_config, RenderConfig};
+
+/// Helper to extract Code exercise from ParsedExercise
+fn unwrap_code(parsed: ParsedExercise) -> Exercise {
+    match parsed {
+        ParsedExercise::Code(ex) => ex,
+        ParsedExercise::UseCase(_) => panic!("Expected Code exercise, got UseCase"),
+    }
+}
 
 /// Test parsing and rendering a complete exercise.
 #[test]
@@ -91,7 +99,8 @@ fn test_add() {
 "#;
 
     // Parse the exercise
-    let exercise = parse_exercise(markdown).expect("Failed to parse exercise");
+    let parsed = parse_exercise(markdown).expect("Failed to parse exercise");
+    let exercise = unwrap_code(parsed.clone());
 
     // Verify metadata
     assert_eq!(exercise.metadata.id, "calculator-basic");
@@ -160,7 +169,7 @@ fn test_add() {
     assert_eq!(reflection.len(), 2);
 
     // Now render the exercise
-    let html = render_exercise(&exercise).expect("Failed to render");
+    let html = render_exercise(&parsed).expect("Failed to render");
 
     // Verify HTML structure
     assert!(html.contains(r#"data-exercise-id="calculator-basic""#));
@@ -194,7 +203,7 @@ fn main() {}
 :::
 "#;
 
-    let exercise = parse_exercise(markdown).expect("Failed to parse");
+    let exercise = unwrap_code(parse_exercise(markdown).expect("Failed to parse"));
 
     assert_eq!(exercise.metadata.id, "simple-01");
     assert_eq!(exercise.metadata.difficulty, Difficulty::Beginner);
@@ -235,7 +244,7 @@ fn main() {
 :::
 "#;
 
-    let exercise = parse_exercise(markdown).expect("Failed to parse");
+    let exercise = unwrap_code(parse_exercise(markdown).expect("Failed to parse"));
 
     // The ID should be from the real exercise block, not any fake one
     assert_eq!(exercise.metadata.id, "code-block-test");
@@ -279,7 +288,7 @@ let x = 5;
 :::
 "#;
 
-    let exercise = parse_exercise(markdown).expect("Failed to parse");
+    let exercise = unwrap_code(parse_exercise(markdown).expect("Failed to parse"));
 
     assert_eq!(exercise.hints.len(), 3);
 
@@ -321,7 +330,7 @@ fn local_test() {
 :::
 "#;
 
-    let exercise = parse_exercise(markdown).expect("Failed to parse");
+    let exercise = unwrap_code(parse_exercise(markdown).expect("Failed to parse"));
 
     let tests = exercise.tests.as_ref().expect("Should have tests");
     assert_eq!(tests.mode, TestMode::Local);
@@ -350,6 +359,7 @@ fn test_render_config() {
         }),
         ..Default::default()
     };
+    let parsed = ParsedExercise::Code(exercise);
 
     // With hints revealed
     let config = RenderConfig {
@@ -357,7 +367,7 @@ fn test_render_config() {
         reveal_solution: false,
         ..Default::default()
     };
-    let html = render_exercise_with_config(&exercise, &config).expect("Failed to render");
+    let html = render_exercise_with_config(&parsed, &config).expect("Failed to render");
     assert!(html.contains(r#"<details class="hint" data-level="1" open>"#));
 
     // With solution revealed
@@ -366,7 +376,7 @@ fn test_render_config() {
         reveal_solution: true,
         ..Default::default()
     };
-    let html = render_exercise_with_config(&exercise, &config).expect("Failed to render");
+    let html = render_exercise_with_config(&parsed, &config).expect("Failed to render");
     assert!(html.contains(r#"<details class="solution" open>"#));
 }
 
@@ -452,17 +462,18 @@ fn main() {}
 :::
 "#;
 
-    let exercise = parse_exercise(markdown).expect("Failed to parse");
+    let parsed = parse_exercise(markdown).expect("Failed to parse");
 
     // Serialize to JSON
-    let json = serde_json::to_string_pretty(&exercise).expect("Failed to serialize");
+    let json = serde_json::to_string_pretty(&parsed).expect("Failed to serialize");
 
     // Deserialize back
-    let deserialized: Exercise = serde_json::from_str(&json).expect("Failed to deserialize");
+    let deserialized: ParsedExercise = serde_json::from_str(&json).expect("Failed to deserialize");
+    let exercise = unwrap_code(deserialized);
 
-    assert_eq!(deserialized.metadata.id, "serialize-test");
-    assert_eq!(deserialized.metadata.difficulty, Difficulty::Advanced);
-    assert_eq!(deserialized.metadata.time_minutes, Some(60));
+    assert_eq!(exercise.metadata.id, "serialize-test");
+    assert_eq!(exercise.metadata.difficulty, Difficulty::Advanced);
+    assert_eq!(exercise.metadata.time_minutes, Some(60));
 }
 
 /// Test advanced difficulty level.
@@ -495,7 +506,7 @@ fn main() {{}}
             input
         );
 
-        let exercise = parse_exercise(&markdown).expect("Failed to parse");
+        let exercise = unwrap_code(parse_exercise(&markdown).expect("Failed to parse"));
         assert_eq!(
             exercise.metadata.difficulty, expected,
             "Failed for input: {}",
@@ -529,7 +540,7 @@ Test.
             time_str
         );
 
-        let exercise = parse_exercise(&markdown).expect("Failed to parse");
+        let exercise = unwrap_code(parse_exercise(&markdown).expect("Failed to parse"));
         assert_eq!(
             exercise.metadata.time_minutes, expected,
             "Failed for time string: {}",
@@ -555,7 +566,7 @@ This is a discussion-only exercise.
 :::
 "#;
 
-    let exercise = parse_exercise(markdown).expect("Failed to parse");
+    let exercise = unwrap_code(parse_exercise(markdown).expect("Failed to parse"));
 
     assert_eq!(exercise.metadata.id, "no-starter");
     assert!(exercise.starter.is_none());

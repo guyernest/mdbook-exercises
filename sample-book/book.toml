@@ -19,5 +19,5 @@ progress_tracking = true
 
 [output.html]
 # Assets are installed to src/theme/ by manage_assets
-additional-css = ["theme/exercises.css"]
-additional-js = ["theme/exercises.js"]
+additional-css = ["src/theme/exercises.css"]
+additional-js = ["src/theme/exercises.js"]
