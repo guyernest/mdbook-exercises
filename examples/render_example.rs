@@ -1,4 +1,4 @@
-use mdbook_exercises::{parse_exercise, render_exercise, ParsedExercise};
+use mdbook_exercises::{parse_exercise, render_exercise, ParsedExercise, ParseError};
 use std::fs;
 use std::path::Path;
 
@@ -16,9 +16,15 @@ fn main() {
         .unwrap_or_else(|_| panic!("Could not read {}", input_path));
 
     // Parse it
-    println!("Parsing exercise...");
-    let parsed = parse_exercise(&markdown)
-        .expect("Failed to parse exercise");
+    println!("Parsing {}...", input_path);
+    let parsed = match parse_exercise(&markdown) {
+        Ok(p) => p,
+        Err(ParseError::UnknownExerciseType) => {
+            println!("Skipping {} - not an exercise file (no ::: exercise or ::: usecase directive)", input_path);
+            return;
+        }
+        Err(e) => panic!("Failed to parse exercise: {}", e),
+    };
 
     // Extract info based on exercise type
     let (id, title_opt) = match &parsed {
