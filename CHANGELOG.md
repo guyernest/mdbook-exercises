@@ -2,6 +2,37 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.1.5] - 2025-01-05
+
+### Features
+- **UseCase exercises**: New exercise type for scenario-based analysis with LLM evaluation, designed for written response exercises evaluated by AI.
+- New directives for UseCase exercises:
+  - `::: usecase` - Exercise metadata with domain (healthcare, defense, financial, general)
+  - `::: scenario` - Business context with organization and constraints
+  - `::: prompt` - Analysis question with aspects to address
+  - `::: evaluation` - Criteria and key points for LLM-as-Judge
+  - `::: sample-answer` - Sample response for calibration (not shown to students)
+  - `::: context` - Educational content shown after submission
+- `ParsedExercise` enum that wraps `Code` and `UseCase` variants for unified handling.
+- UseCase examples added to Live Demo: Healthcare HIPAA Compliance and Defense Multi-Level Security.
+
+### Simplifications
+- Removed evaluation output types from preprocessor (belong in MCP server).
+- Simplified `Scenario` type: removed `stakeholders` and `industry` fields.
+- Removed `hints` from `UseCasePrompt` (top-level hints Vec is sufficient).
+
+### Fixes
+- `render_example` now gracefully skips non-exercise files (e.g., README.md) instead of panicking.
+- Improved YAML/content parsing for scenario and prompt blocks (no blank line required between YAML header and markdown content).
+
+### Documentation
+- Added `docs/USECASE_EXERCISES.md` design document.
+- Updated lib.rs doctest for new `ParsedExercise` API.
+
+### Breaking Changes
+- `parse_exercise()` now returns `ParsedExercise` enum instead of `Exercise` directly.
+  - Use pattern matching: `ParsedExercise::Code(ex)` or `ParsedExercise::UseCase(ex)`.
+
 ## [0.1.4] - 2025-12-28
 
 ### Features
